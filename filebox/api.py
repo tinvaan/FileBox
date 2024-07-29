@@ -4,7 +4,7 @@ from flask import Flask
 from flask import request, redirect, url_for
 
 
-app = Flask('filebox', instance_relative_config=True)
+app = Flask('filebox')
 app.config.from_object('filebox.config')
 app.config.from_pyfile('config.py', silent=True)
 
@@ -32,7 +32,7 @@ def upload(uid):
     """
 
 
-@app.route('uploads/delete', methods=['DELETE'])
+@app.route('/uploads/delete', methods=['DELETE'])
 def clear():
     """
     Delete multiple uploaded files.
