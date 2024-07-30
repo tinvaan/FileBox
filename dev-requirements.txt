@@ -1,0 +1,4 @@
+tox==4.16.0
+ipdb==0.13.13
+pytest==8.3.2
+pytest-sugar==1.0.0
