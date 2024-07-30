@@ -1,9 +1,10 @@
 """ Filebox upload endpoints """
 
-from mongoengine.errors import FieldDoesNotExist, ValidationError
+from mongoengine.errors import FieldDoesNotExist, OperationError, ValidationError
 from flask import Blueprint
 from flask.views import MethodView
 from flask import jsonify, make_response, request
+from werkzeug.utils import secure_filename
 
 from filebox.models import FileUpload
 
@@ -15,10 +16,24 @@ class Uploads(MethodView):
     def get(self):
         return FileUpload.objects(hidden=request.args.get('hidden', False)).to_json()
 
+    def post(self):
+        try:
+            file = request.files.get('file')
+            params = request.get_json()
+            params.update({
+                'type': file.mimetype, 'name': secure_filename(file.filename)
+            })
+            return FileUpload(**params).save().to_json()
+        except (FieldDoesNotExist, ValidationError):
+            return make_response(jsonify({'error': 'Failed to upload file'}), 400)
+
     def delete(self):
-        targets = request.get_json('files', [])
-        removed = FileUpload.objects(blob__in=targets).delete()
-        return jsonify({'deleted': removed})
+        try:
+            targets = request.get_json('files', [])
+            removed = FileUpload.objects(blob__in=targets).delete()
+            return jsonify({'deleted': removed})
+        except OperationError:
+            return make_response(jsonify({'error': 'Failed to delete some uploads'}), 500)
 
 
 class UploadItem(MethodView):
