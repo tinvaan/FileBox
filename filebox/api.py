@@ -1,7 +1,9 @@
 """ Filebox API """
 
 from flask import Flask
-from flask import request, redirect, url_for
+from flask import jsonify, redirect, request, url_for
+
+from .models import Upload
 
 
 app = Flask('filebox')
@@ -22,7 +24,7 @@ def history():
     """
     View history of file uploads.
     """
-    showHidden = request.args.get('hidden', False)
+    return Upload.objects(hidden=request.args.get('hidden', False)).to_json()
 
 
 @app.route('/upload/<uid>', methods=['GET', 'PUT'])
@@ -30,6 +32,7 @@ def upload(uid):
     """
     Fetch details for a specific file upload.
     """
+    return Upload.objects.get(uid=uid).to_json()
 
 
 @app.route('/uploads/delete', methods=['DELETE'])
@@ -37,3 +40,9 @@ def clear():
     """
     Delete multiple uploaded files.
     """
+    status = {'deleted': []}
+    for file in request.get_json().get('files', []):
+        u = Upload.objects(blob=file)
+        u.delete()
+        status['deleted'] = status.get('deleted', []) + [u.to_json()]
+    return jsonify(status)
