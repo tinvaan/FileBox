@@ -1,7 +1,6 @@
 """FileBox database models"""
 
-from datetime import datetime
-
+import datetime as dt
 import mongoengine as db
 
 from filebox.enums import BlobTypes, FileState
@@ -20,7 +19,7 @@ class FileBlob(db.Document):
 
 class FileUpload(db.Document):
     """ File upload entity """
-    timestamp = db.DateTimeField(default=datetime.now())
+    timestamp = db.DateTimeField(default=dt.datetime.now())
     state = db.EnumField(FileState, default=FileState.OK)
     blob = db.ReferenceField(FileBlob, required=True, reverse_delete_rule=db.CASCADE)
 
