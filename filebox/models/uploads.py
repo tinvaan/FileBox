@@ -22,6 +22,8 @@ class FileBlob(db.Document):
     type = db.EnumField(Types, choices=[Types.JPG, Types.PNG, Types.PDF])
     uri = db.FileField(unique=True, choices=[Types.JPG, Types.PNG, Types.PDF])
 
+    meta = { 'collection': 'blobs' }
+
     @property
     def created_at(self):
         """ Return when a file was first uploaded """
@@ -33,3 +35,5 @@ class FileUpload(db.Document):
     uid = db.UUIDField()
     timestamp = db.DateTimeField(default=datetime.now())
     blob = db.ReferenceField(FileBlob, required=True, reverse_delete_rule=db.CASCADE)
+
+    meta = { 'collection': 'uploads' }
