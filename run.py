@@ -3,7 +3,7 @@
 import mongoengine as db
 import mongomock as MockDB
 
-from filebox.api import app
+from filebox.views import app
 
 
 db.connect(

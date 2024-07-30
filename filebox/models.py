@@ -28,7 +28,7 @@ class FileBlob(db.Document):
         # TODO: Implement logic
 
 
-class Upload(db.Document):
+class FileUpload(db.Document):
     """ File upload meta entity """
     uid = db.UUIDField()
     timestamp = db.DateTimeField(default=datetime.now())
