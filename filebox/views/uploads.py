@@ -1,5 +1,7 @@
 """ Filebox upload endpoints """
 
+from copy import copy
+from magic import Magic
 from mongoengine.errors import FieldDoesNotExist, OperationError, ValidationError
 from flask import Blueprint
 from flask.views import MethodView
@@ -23,9 +25,15 @@ class Uploads(MethodView):
     def post(self):
         try:
             file = request.files.get('file')
-            if file.mimetype in [choice.value for choice in FileBlob.type.choices]:
-                kwargs = {'type': file.mimetype, 'name': secure_filename(file.filename)}
-                return jsonify(FileUpload(blob=FileBlob(**kwargs).save()).save().to_json())
+            supported = [choice.value for choice in FileBlob.type.choices]
+
+            if file.mimetype in supported:
+                mime = Magic(mime=True)
+                content = copy(file.stream)
+                actual = mime.from_buffer(content.read())
+                if actual in supported:
+                    kwargs = {'type': file.mimetype, 'name': secure_filename(file.filename)}
+                    return jsonify(FileUpload(blob=FileBlob(**kwargs).save()).save().to_json())
 
             return jsonify({'error': 'File type not supported'}, 415)
         except (FieldDoesNotExist, ValidationError):

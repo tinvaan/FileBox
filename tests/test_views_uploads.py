@@ -114,6 +114,12 @@ class TestUploads(unittest.TestCase):
                               content_type='multipart/form-data')
             self.assertEqual(r.status_code, 415)
 
+        with open(fixtures.get('test.pkpass'), 'rb') as fd:
+            r = self.app.post(self.url + '/uploads',
+                              data={'file': (BytesIO(fd.read()), 'test.pdf')},
+                              content_type='multipart/form-data')
+            self.assertEqual(r.status_code, 415)
+
         with open(fixtures.get('test.png'), 'rb') as fd:
             r = self.app.post(self.url + '/uploads',
                               data={'file': (BytesIO(fd.read()), 'test.png')},
