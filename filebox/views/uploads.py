@@ -51,9 +51,12 @@ class UploadItem(MethodView):
 
     def put(self, id):
         try:
-            f = FileUpload.objects.get(uid=id)
-            f.update(**request.get_json())
-            return jsonify(f.save().to_json())
+            data = request.get_json()
+            kwargs = {**({'hidden': data.get('hidden')} if 'hidden' in data.keys() else {})}
+            file = FileUpload.objects.get(id=id)
+            if not file.modify(**kwargs):
+                return jsonify({'error': 'Unable to update "%s"' % id}, 500)
+            return jsonify(file.save().to_json())
         except FileUpload.DoesNotExist:
             return jsonify({'error': 'Upload(%s) not found' % id}, 404)
         except (FieldDoesNotExist, ValidationError):

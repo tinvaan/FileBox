@@ -152,7 +152,24 @@ class TestUploadItem(unittest.TestCase):
         self.assertTrue(item.get('hidden'))
 
     def test_put_upload_item(self):
-        """TODO: Add tests"""
+        ex = FileUpload.objects.first()
+        r = self.app.put(self.url + '/upload/foobar', json={'size': 2048})
+        self.assertEqual(r.status_code, 400)
+
+        r = self.app.put(self.url + '/upload/%s' % ObjectId(), json={'hidden': True})
+        self.assertEqual(r.status_code, 404)
+
+        r = self.app.put(self.url + '/upload/%s' % str(ex.id), json={'hidden': True})
+        item = json.loads(r.json)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(item.get('hidden'))
+        self.assertEqual(item.get('_id').get('$oid'), str(ex.id))
+
+        r = self.app.put(self.url + '/upload/%s' % str(ex.id), json={'hidden': False})
+        item = json.loads(r.json)
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(item.get('hidden'))
+        self.assertEqual(item.get('_id').get('$oid'), str(ex.id))
 
     def test_delete_upload_item(self):
         """TODO: Add tests"""
