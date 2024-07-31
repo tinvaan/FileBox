@@ -3,10 +3,11 @@
 from mongoengine.errors import FieldDoesNotExist, OperationError, ValidationError
 from flask import Blueprint
 from flask.views import MethodView
-from flask import jsonify, make_response, request
+from flask import request
 from werkzeug.utils import secure_filename
 
 from filebox.models import FileUpload
+from filebox.utils import jsonify
 
 
 uploads = Blueprint('uploads', __name__)
@@ -14,7 +15,7 @@ uploads = Blueprint('uploads', __name__)
 
 class Uploads(MethodView):
     def get(self):
-        return FileUpload.objects(hidden=request.args.get('hidden', False)).to_json()
+        return jsonify(FileUpload.objects.filter(hidden=request.args.get('hidden', False)).to_json())
 
     def post(self):
         try:
@@ -23,9 +24,9 @@ class Uploads(MethodView):
             params.update({
                 'type': file.mimetype, 'name': secure_filename(file.filename)
             })
-            return FileUpload(**params).save().to_json()
+            return jsonify(FileUpload(**params).save().to_dict())
         except (FieldDoesNotExist, ValidationError):
-            return make_response(jsonify({'error': 'Failed to upload file'}), 400)
+            return jsonify({'error': 'Failed to upload file'}, 400)
 
     def delete(self):
         try:
@@ -33,26 +34,25 @@ class Uploads(MethodView):
             removed = FileUpload.objects(blob__in=targets).delete()
             return jsonify({'deleted': removed})
         except OperationError:
-            return make_response(jsonify({'error': 'Failed to delete some uploads'}), 500)
+            return jsonify({'error': 'Failed to delete some uploads'}, 500)
 
 
 class UploadItem(MethodView):
     def get(self, id):
         try:
-            return FileUpload.objects.get(uid=id).to_json()
+            return jsonify(FileUpload.objects.get(uid=id).to_json())
         except FileUpload.DoesNotExist:
-            return make_response(jsonify({'error': 'Upload(%s) not found' % id}), 404)
+            return jsonify({'error': 'Upload(%s) not found' % id}, 404)
 
     def put(self, id):
         try:
             f = FileUpload.objects.get(uid=id)
             f.update(**request.get_json())
-            f.save()
-            return f.to_json()
+            return jsonify(f.save().to_json())
         except FileUpload.DoesNotExist:
-            return make_response(jsonify({'error': 'Upload(%s) not found' % id}), 404)
+            return jsonify({'error': 'Upload(%s) not found' % id}, 404)
         except (FieldDoesNotExist, ValidationError):
-            return make_response(jsonify({'error': 'Failed to update upload(%s)' % id}), 400)
+            return jsonify({'error': 'Failed to update upload(%s)' % id}, 400)
 
     def delete(self, id):
         try:
@@ -60,4 +60,4 @@ class UploadItem(MethodView):
             f.delete()
             return jsonify({'deleted': f.uid})
         except FileUpload.DoesNotExist:
-            return make_response(jsonify({'error': 'Upload(%s) not found' % id}), 404)
+            return jsonify({'error': 'Upload(%s) not found' % id}, 404)
