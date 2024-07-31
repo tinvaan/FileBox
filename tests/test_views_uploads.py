@@ -172,7 +172,20 @@ class TestUploadItem(unittest.TestCase):
         self.assertEqual(item.get('_id').get('$oid'), str(ex.id))
 
     def test_delete_upload_item(self):
-        """TODO: Add tests"""
+        r = self.app.delete(self.url + '/upload/foobar')
+        self.assertEqual(r.status_code, 400)
+
+        r = self.app.delete(self.url + '/upload/%s' % ObjectId())
+        self.assertEqual(r.status_code, 404)
+
+        ex = FileUpload.objects.first()
+        r = self.app.delete(self.url + '/upload/%s' % str(ex.id))
+        self.assertEqual(r.json.get('deleted'), str(ex.id))
+        with self.assertRaises(db.DoesNotExist):
+            FileUpload.objects.get(id=ex.id)
+
+        r = self.app.delete(self.url + '/upload/%s' % str(ex.id))
+        self.assertEqual(r.status_code, 404)
 
     def tearDown(self) -> None:
         self.db = db.get_db()

@@ -64,8 +64,10 @@ class UploadItem(MethodView):
 
     def delete(self, id):
         try:
-            f = FileUpload.objects.get(uid=id)
-            f.delete()
-            return jsonify({'deleted': f.uid})
+            file = FileUpload.objects.get(id=id)
+            file.delete()
+            return jsonify({'deleted': str(file.id)})
         except FileUpload.DoesNotExist:
             return jsonify({'error': 'Upload(%s) not found' % id}, 404)
+        except ValidationError:
+            return jsonify({'error': 'Failed to delete upload(%s)' % id}, 400)
