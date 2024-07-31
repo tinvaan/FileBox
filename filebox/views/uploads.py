@@ -43,9 +43,11 @@ class Uploads(MethodView):
 class UploadItem(MethodView):
     def get(self, id):
         try:
-            return jsonify(FileUpload.objects.get(uid=id).to_json())
+            return jsonify(FileUpload.objects.get(id=id).to_json())
         except FileUpload.DoesNotExist:
             return jsonify({'error': 'Upload(%s) not found' % id}, 404)
+        except ValidationError:
+            return jsonify({'error': 'Failed to retrieve upload(%s)' % id}, 400)
 
     def put(self, id):
         try:

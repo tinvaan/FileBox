@@ -6,6 +6,7 @@ import unittest
 import mongoengine as db
 import mongomock as MockDB
 
+from bson import ObjectId
 from os import path
 from mongomock.gridfs import enable_gridfs_integration
 
@@ -13,6 +14,10 @@ from . import Env, fixtures
 from filebox import app
 from filebox.urls import Routes
 from filebox.models.uploads import FileBlob, FileUpload
+
+
+Routes.setup()
+enable_gridfs_integration()
 
 
 class Fixtures:
@@ -54,9 +59,6 @@ class Fixtures:
 class TestUploads(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        Routes.setup()
-        enable_gridfs_integration()
-
         app.config['TESTING'] = True
         cls.env = Env.load(app.config)
         cls.app = app.test_client()
@@ -98,6 +100,62 @@ class TestUploads(unittest.TestCase):
         r = self.app.get(self.url + '/uploads?hidden=true')
         self.assertEqual(r.status_code, 200)
         self.assertEqual(len(json.loads(r.json)), 4)
+
+    def test_create_upload(self):
+        """TODO: Add tests"""
+
+    def test_bulk_delete_uploads(self):
+        """TODO: Add tests"""
+
+    def tearDown(self) -> None:
+        self.db = db.get_db()
+        self.db.drop_collection('blobs')
+        self.db.drop_collection('uploads')
+        self.conn.drop_database(self.db.name)
+
+
+class TestUploadItem(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        app.config['TESTING'] = True
+        cls.env = Env.load(app.config)
+        cls.app = app.test_client()
+
+    def setUp(self):
+        self.url = self.env.host
+        self.conn = db.connect(
+            'testdb',
+            host=app.config.get('MONGODB_HOST'),
+            mongo_client_class=MockDB.MongoClient
+        )
+        Fixtures.seed()
+
+    def test_get_upload_item(self):
+        ex = FileUpload.objects.first()
+        r = self.app.get(self.url + '/upload/foobar')
+        self.assertEqual(r.status_code, 400)
+
+        r = self.app.get(self.url + '/upload/%s' % ObjectId())
+        self.assertEqual(r.status_code, 404)
+
+        r = self.app.get(self.url + '/upload/%s' % str(ex.id))
+        item = json.loads(r.json)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(item.get('_id').get('$oid'), str(ex.id))
+
+        Fixtures.add(hidden=True)
+        ex = FileUpload.objects.get(hidden=True)
+        r = self.app.get(self.url + '/upload/%s' % str(ex.id))
+        item = json.loads(r.json)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(item.get('_id').get('$oid'), str(ex.id))
+        self.assertTrue(item.get('hidden'))
+
+    def test_put_upload_item(self):
+        """TODO: Add tests"""
+
+    def test_delete_upload_item(self):
+        """TODO: Add tests"""
 
     def tearDown(self) -> None:
         self.db = db.get_db()
