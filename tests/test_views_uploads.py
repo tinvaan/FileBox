@@ -7,6 +7,7 @@ import mongoengine as db
 import mongomock as MockDB
 
 from bson import ObjectId
+from io import BytesIO
 from os import path
 from mongomock.gridfs import enable_gridfs_integration
 
@@ -102,7 +103,27 @@ class TestUploads(unittest.TestCase):
         self.assertEqual(len(json.loads(r.json)), 4)
 
     def test_create_upload(self):
-        """TODO: Add tests"""
+        with open(fixtures.get('test.pkpass'), 'rb') as fd:
+            r = self.app.post(self.url + '/uploads',
+                              data={'file': (BytesIO(fd.read()), 'test.pkpass')},
+                              content_type='multipart/form-data')
+            self.assertEqual(r.status_code, 415)
+
+        with open(fixtures.get('test.png'), 'rb') as fd:
+            r = self.app.post(self.url + '/uploads',
+                              data={'file': (BytesIO(fd.read()), 'test.png')},
+                              content_type='multipart/form-data')
+            item = json.loads(r.json)
+
+            self.assertEqual(r.status_code, 200)
+            self.assertFalse(item.get('hidden'))
+            self.assertTrue('blob' in item.keys())
+
+            self.assertGreater(FileBlob.objects.count(), 3)
+            self.assertIsNotNone(FileBlob.objects.get(id=item.get('blob').get('$oid')))
+
+            self.assertGreater(FileUpload.objects.count(), 3)
+            self.assertIsNotNone(FileUpload.objects.get(id=item.get('_id').get('$oid')))
 
     def test_bulk_delete_uploads(self):
         """TODO: Add tests"""

@@ -1,2 +1,2 @@
 
-from .uploads import FileUpload
+from .uploads import FileBlob, FileUpload
