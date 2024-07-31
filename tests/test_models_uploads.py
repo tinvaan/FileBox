@@ -43,18 +43,16 @@ class TestFileBlob(unittest.TestCase):
         fb = FileBlob(name='minimal', size=100, type='application/pdf').save()
 
         self.assertIsNotNone(fb.id)
-        self.assertFalse(fb.hidden)
         self.assertEqual(fb.size, 100)
         self.assertEqual(fb.name, 'minimal')
         self.assertEqual(fb.type.value, 'application/pdf')
 
     def test_file_blob_update(self):
         fb = FileBlob(name='update_test', size=200, type='application/pdf').save()
-        fb.size, fb.hidden = 300, True
+        fb.size = 300
         fb.save()
 
         f = FileBlob.objects(id=fb.id).first()
-        self.assertTrue(f.hidden)
         self.assertEqual(f.size, 300)
 
     def test_file_blob_delete(self):
@@ -65,12 +63,11 @@ class TestFileBlob(unittest.TestCase):
         self.assertEqual(FileBlob.objects.filter(id=tag).count(), 0)
 
     def test_file_blob_with_all_fields(self):
-        fb = FileBlob(name='complete', size=1000, hidden=True, type='image/jpeg')
+        fb = FileBlob(name='complete', size=1000, type='image/jpeg')
         fb.save()
         retrieved_blob = FileBlob.objects(id=fb.id).first()
         self.assertEqual(retrieved_blob.name, 'complete')
         self.assertEqual(retrieved_blob.size, 1000)
-        self.assertTrue(retrieved_blob.hidden)
         self.assertEqual(retrieved_blob.type.value, 'image/jpeg')
 
     def tearDown(self):

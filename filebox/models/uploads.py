@@ -11,7 +11,6 @@ class FileBlob(db.Document):
     name = db.StringField()
     uri = db.FileField(required=True)
     size = db.IntField(max_value=10000000)  # TODO: Read from app config
-    hidden = db.BooleanField(default=False)
     type = db.EnumField(BlobTypes, required=True, choices=[BlobTypes.JPG, BlobTypes.PNG, BlobTypes.PDF])
 
     meta = { 'strict': True, 'collection': 'blobs' }
@@ -19,6 +18,7 @@ class FileBlob(db.Document):
 
 class FileUpload(db.Document):
     """ File upload entity """
+    hidden = db.BooleanField(default=False)
     timestamp = db.DateTimeField(default=dt.datetime.now())
     state = db.EnumField(FileState, default=FileState.OK)
     blob = db.ReferenceField(FileBlob, required=True, reverse_delete_rule=db.CASCADE)
