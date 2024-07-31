@@ -11,7 +11,7 @@ from mongomock.gridfs import enable_gridfs_integration
 
 from . import fixtures
 from filebox import app
-from filebox.enums import BlobTypes, FileState
+from filebox.enums import BlobTypes
 from filebox.models.uploads import FileBlob, FileUpload
 
 
@@ -106,13 +106,11 @@ class TestFileUpload(unittest.TestCase):
 
         self.assertIsNotNone(upload.id)
         self.assertIsNotNone(upload.timestamp)
-        self.assertEqual(upload.state, FileState.OK)
 
     def test_edit_file_upload(self):
         blob = self.blob('test.png', save=True)
         upload = FileUpload(blob=blob.id).save()
         before = deepcopy(upload)
-        upload.state = FileState.FAIL
         upload.save()
 
         self.assertNotEqual(before.state, upload.state)

@@ -3,7 +3,7 @@
 import datetime as dt
 import mongoengine as db
 
-from filebox.enums import BlobTypes, FileState
+from filebox.enums import BlobTypes
 
 
 class FileBlob(db.Document):
@@ -20,7 +20,6 @@ class FileUpload(db.Document):
     """ File upload entity """
     hidden = db.BooleanField(default=False)
     timestamp = db.DateTimeField(default=dt.datetime.now())
-    state = db.EnumField(FileState, default=FileState.OK)
     blob = db.ReferenceField(FileBlob, required=True, reverse_delete_rule=db.CASCADE)
 
     meta = { 'strict': True, 'collection': 'uploads' }
