@@ -1,5 +1,4 @@
 
-import ipdb
 import json
 import mimetypes
 import unittest
@@ -103,6 +102,12 @@ class TestUploads(unittest.TestCase):
         self.assertEqual(len(json.loads(r.json)), 4)
 
     def test_create_upload(self):
+        with open(fixtures.get('test.mp4'), 'rb') as fd:
+            r = self.app.post(self.url + '/uploads',
+                              data={'file': (BytesIO(fd.read()), 'test.pkpass')},
+                              content_type='multipart/form-data')
+            self.assertEqual(r.status_code, 413)
+
         with open(fixtures.get('test.pkpass'), 'rb') as fd:
             r = self.app.post(self.url + '/uploads',
                               data={'file': (BytesIO(fd.read()), 'test.pkpass')},
