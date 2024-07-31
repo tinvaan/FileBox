@@ -7,8 +7,3 @@ class BlobTypes(Enum):
     PNG = 'image/png'
     JPG = 'image/jpeg'
     PDF = 'application/pdf'
-
-class FileState(Enum):
-    OK = 'success'
-    NO = 'rejected'
-    FAIL = 'failure'
