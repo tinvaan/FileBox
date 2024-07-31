@@ -6,7 +6,7 @@ from flask.views import MethodView
 from flask import request
 from werkzeug.utils import secure_filename
 
-from filebox.models import FileUpload
+from filebox.models import FileBlob, FileUpload
 from filebox.utils import jsonify
 
 
@@ -23,11 +23,11 @@ class Uploads(MethodView):
     def post(self):
         try:
             file = request.files.get('file')
-            params = request.get_json()
-            params.update({
-                'type': file.mimetype, 'name': secure_filename(file.filename)
-            })
-            return jsonify(FileUpload(**params).save().to_dict())
+            if file.mimetype in [choice.value for choice in FileBlob.type.choices]:
+                kwargs = {'type': file.mimetype, 'name': secure_filename(file.filename)}
+                return jsonify(FileUpload(blob=FileBlob(**kwargs).save()).save().to_json())
+
+            return jsonify({'error': 'File type not supported'}, 415)
         except (FieldDoesNotExist, ValidationError):
             return jsonify({'error': 'Failed to upload file'}, 400)
 
