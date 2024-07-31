@@ -10,8 +10,8 @@ class Routes:
 
     @property
     def rules(self):
-        uploads.add_url_rule('/uploads', view_func=Uploads.as_view('uploads'))
-        uploads.add_url_rule('/uploads/<id>', view_func=UploadItem.as_view('upload'))
+        uploads.add_url_rule('/uploads', view_func=Uploads.as_view('items'))
+        uploads.add_url_rule('/upload/<id>', view_func=UploadItem.as_view('item'))
         return self
 
     @staticmethod
