@@ -1,11 +1,13 @@
 """ Filebox upload endpoints """
 
+import json
+
 from copy import copy
 from magic import Magic
 from mongoengine.errors import FieldDoesNotExist, OperationError, ValidationError
 from flask import Blueprint
 from flask.views import MethodView
-from flask import request
+from flask import request, url_for
 from werkzeug.utils import secure_filename
 
 from filebox.models import FileBlob, FileUpload
@@ -62,7 +64,11 @@ class Uploads(MethodView):
 class UploadItem(MethodView):
     def get(self, id):
         try:
-            return jsonify(FileUpload.objects.get(id=id).to_json())
+            item = json.loads(FileUpload.objects.get(id=id).to_json())
+            item.update({
+                'blob': url_for('blobs.show', id=str(item.get('_id').get('$oid')))
+            })
+            return jsonify(item)
         except FileUpload.DoesNotExist:
             return jsonify({'error': 'Upload(%s) not found' % id}, 404)
         except ValidationError:
