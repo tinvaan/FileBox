@@ -210,6 +210,8 @@ class TestUploadItem(unittest.TestCase):
         self.assertEqual(r.json.get('deleted'), str(ex.id))
         with self.assertRaises(db.DoesNotExist):
             FileUpload.objects.get(id=ex.id)
+        with self.assertRaises(db.DoesNotExist):
+            FileBlob.objects.get(id=ex.blob.id)
 
         r = self.app.delete(self.url + '/upload/%s' % str(ex.id))
         self.assertEqual(r.status_code, 404)

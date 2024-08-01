@@ -28,9 +28,19 @@ class FileUpload(db.Document):
 
     meta = { 'strict': True, 'collection': 'uploads' }
 
+    @classmethod
+    def post_delete(cls, sender, document):
+        try:
+            FileBlob.objects(id=document.blob.id).delete()
+        except FileBlob.DoesNotExist:
+            pass
+
     def clean(self):
         try:
             assert FileBlob.objects.get(id=self.blob.id)
         except Exception as e:
             raise db.ValidationError("ReferenceField value<%s> does not exist" % self.blob)
         return super().clean()
+
+
+db.signals.post_delete.connect(FileUpload.post_delete, sender=FileUpload)
