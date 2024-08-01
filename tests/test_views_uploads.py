@@ -76,30 +76,30 @@ class TestUploads(unittest.TestCase):
         r = self.app.get(self.url + '/uploads')
 
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(len(json.loads(r.json)), 3)
+        self.assertEqual(len(r.json), 3)
 
     def test_hidden_uploads(self):
         Fixtures.add(hidden=True)
 
         r = self.app.get(self.url + '/uploads')
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(len(json.loads(r.json)), 3)
+        self.assertEqual(len(r.json), 3)
 
         r = self.app.get(self.url + '/uploads?all=false')
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(len(json.loads(r.json)), 3)
+        self.assertEqual(len(r.json), 3)
 
         r = self.app.get(self.url + '/uploads?all=true')
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(len(json.loads(r.json)), 4)
+        self.assertEqual(len(r.json), 4)
 
         r = self.app.get(self.url + '/uploads?hidden=false')
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(len(json.loads(r.json)), 3)
+        self.assertEqual(len(r.json), 3)
 
         r = self.app.get(self.url + '/uploads?hidden=true')
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(len(json.loads(r.json)), 4)
+        self.assertEqual(len(r.json), 4)
 
     def test_create_upload(self):
         with open(fixtures.get('test.mp4'), 'rb') as fd:
@@ -124,17 +124,16 @@ class TestUploads(unittest.TestCase):
             r = self.app.post(self.url + '/uploads',
                               data={'file': (BytesIO(fd.read()), 'test.png')},
                               content_type='multipart/form-data')
-            item = json.loads(r.json)
 
             self.assertEqual(r.status_code, 200)
-            self.assertFalse(item.get('hidden'))
-            self.assertTrue('blob' in item.keys())
+            self.assertFalse(r.json.get('hidden'))
+            self.assertTrue('blob' in r.json.keys())
 
             self.assertGreater(FileBlob.objects.count(), 3)
-            self.assertIsNotNone(FileBlob.objects.get(id=item.get('blob').get('$oid')))
+            self.assertIsNotNone(FileBlob.objects.get(id=r.json.get('blob').get('$oid')))
 
             self.assertGreater(FileUpload.objects.count(), 3)
-            self.assertIsNotNone(FileUpload.objects.get(id=item.get('_id').get('$oid')))
+            self.assertIsNotNone(FileUpload.objects.get(id=r.json.get('_id').get('$oid')))
 
     def test_bulk_delete_uploads(self):
         """TODO: Add tests"""
@@ -171,17 +170,15 @@ class TestUploadItem(unittest.TestCase):
         self.assertEqual(r.status_code, 404)
 
         r = self.app.get(self.url + '/upload/%s' % str(ex.id))
-        item = json.loads(r.json)
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(item.get('_id').get('$oid'), str(ex.id))
+        self.assertEqual(r.json.get('_id').get('$oid'), str(ex.id))
 
         Fixtures.add(hidden=True)
         ex = FileUpload.objects.get(hidden=True)
         r = self.app.get(self.url + '/upload/%s' % str(ex.id))
-        item = json.loads(r.json)
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(item.get('_id').get('$oid'), str(ex.id))
-        self.assertTrue(item.get('hidden'))
+        self.assertEqual(r.json.get('_id').get('$oid'), str(ex.id))
+        self.assertTrue(r.json.get('hidden'))
 
     def test_put_upload_item(self):
         ex = FileUpload.objects.first()
@@ -192,16 +189,14 @@ class TestUploadItem(unittest.TestCase):
         self.assertEqual(r.status_code, 404)
 
         r = self.app.put(self.url + '/upload/%s' % str(ex.id), json={'hidden': True})
-        item = json.loads(r.json)
         self.assertEqual(r.status_code, 200)
-        self.assertTrue(item.get('hidden'))
-        self.assertEqual(item.get('_id').get('$oid'), str(ex.id))
+        self.assertTrue(r.json.get('hidden'))
+        self.assertEqual(r.json.get('_id').get('$oid'), str(ex.id))
 
         r = self.app.put(self.url + '/upload/%s' % str(ex.id), json={'hidden': False})
-        item = json.loads(r.json)
         self.assertEqual(r.status_code, 200)
-        self.assertFalse(item.get('hidden'))
-        self.assertEqual(item.get('_id').get('$oid'), str(ex.id))
+        self.assertFalse(r.json.get('hidden'))
+        self.assertEqual(r.json.get('_id').get('$oid'), str(ex.id))
 
     def test_delete_upload_item(self):
         r = self.app.delete(self.url + '/upload/foobar')
