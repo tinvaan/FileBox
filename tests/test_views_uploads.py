@@ -130,10 +130,10 @@ class TestUploads(unittest.TestCase):
             self.assertTrue('blob' in r.json.keys())
 
             self.assertGreater(FileBlob.objects.count(), 3)
-            self.assertIsNotNone(FileBlob.objects.get(id=r.json.get('blob').get('$oid')))
+            self.assertIsNotNone(FileBlob.objects.get(id=r.json.get('blob').get('id')))
 
             self.assertGreater(FileUpload.objects.count(), 3)
-            self.assertIsNotNone(FileUpload.objects.get(id=r.json.get('_id').get('$oid')))
+            self.assertIsNotNone(FileUpload.objects.get(id=r.json.get('id')))
 
     def test_bulk_delete_uploads(self):
         """TODO: Add tests"""
@@ -171,13 +171,13 @@ class TestUploadItem(unittest.TestCase):
 
         r = self.app.get(self.url + '/upload/%s' % str(ex.id))
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.json.get('_id').get('$oid'), str(ex.id))
+        self.assertEqual(r.json.get('id'), str(ex.id))
 
         Fixtures.add(hidden=True)
         ex = FileUpload.objects.get(hidden=True)
         r = self.app.get(self.url + '/upload/%s' % str(ex.id))
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.json.get('_id').get('$oid'), str(ex.id))
+        self.assertEqual(r.json.get('id'), str(ex.id))
         self.assertTrue(r.json.get('hidden'))
 
     def test_put_upload_item(self):
@@ -191,12 +191,12 @@ class TestUploadItem(unittest.TestCase):
         r = self.app.put(self.url + '/upload/%s' % str(ex.id), json={'hidden': True})
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.json.get('hidden'))
-        self.assertEqual(r.json.get('_id').get('$oid'), str(ex.id))
+        self.assertEqual(r.json.get('id'), str(ex.id))
 
         r = self.app.put(self.url + '/upload/%s' % str(ex.id), json={'hidden': False})
         self.assertEqual(r.status_code, 200)
         self.assertFalse(r.json.get('hidden'))
-        self.assertEqual(r.json.get('_id').get('$oid'), str(ex.id))
+        self.assertEqual(r.json.get('id'), str(ex.id))
 
     def test_delete_upload_item(self):
         r = self.app.delete(self.url + '/upload/foobar')

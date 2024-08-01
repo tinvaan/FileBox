@@ -1,7 +1,10 @@
 """FileBox database models"""
 
-import datetime as dt
+import json
 import mongoengine as db
+
+from datetime import datetime
+from flask import url_for
 
 from filebox.enums import BlobTypes
 
@@ -19,11 +22,14 @@ class FileBlob(db.Document):
     def database(self):
         return db.get_db()
 
+    def to_json(self, *args, **kwargs):
+        return json.dumps(dict(id=str(self.id), name=self.name, size=self.size, type=self.type.value))
+
 
 class FileUpload(db.Document):
     """ File upload entity """
     hidden = db.BooleanField(default=False)
-    timestamp = db.DateTimeField(default=dt.datetime.now())
+    timestamp = db.DateTimeField(default=datetime.now())
     blob = db.ReferenceField(FileBlob, required=True, reverse_delete_rule=db.CASCADE)
 
     meta = { 'strict': True, 'collection': 'uploads' }
@@ -41,6 +47,16 @@ class FileUpload(db.Document):
         except Exception as e:
             raise db.ValidationError("ReferenceField value<%s> does not exist" % self.blob)
         return super().clean()
+
+    def to_json(self, *args, **kwargs):
+        d = dict(
+            id=str(self.id),
+            hidden=self.hidden,
+            timestamp=self.timestamp.ctime(),
+            blob=json.loads(self.blob.to_json())
+        )
+        d.get('blob').update({'uri': url_for('blobs.show', id=str(self.id))})
+        return json.dumps(d)
 
 
 db.signals.post_delete.connect(FileUpload.post_delete, sender=FileUpload)
