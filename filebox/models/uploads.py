@@ -15,6 +15,10 @@ class FileBlob(db.Document):
 
     meta = { 'strict': True, 'collection': 'blobs' }
 
+    @property
+    def database(self):
+        return db.get_db()
+
 
 class FileUpload(db.Document):
     """ File upload entity """

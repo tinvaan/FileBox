@@ -1,6 +1,5 @@
 
 from gridfs import GridFS
-from mongoengine import get_db
 from mongoengine.errors import FieldDoesNotExist
 from flask import send_file
 from flask import Blueprint
@@ -14,14 +13,12 @@ blobs = Blueprint('blobs', __name__)
 
 
 class BlobsView(MethodView):
-    db = get_db()
-
     def get(self, id):
-        fs = GridFS(self.db)
         try:
             upload = FileUpload.objects.get(id=id)
             blob = FileBlob.objects.get(id=upload.blob.id)
 
+            fs = GridFS(blob.database)
             file = fs.get(blob.uri.grid_id)
             return send_file(file, as_attachment=False, mimetype=blob.type.value)
         except FieldDoesNotExist:
