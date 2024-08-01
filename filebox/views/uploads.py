@@ -29,14 +29,22 @@ class Uploads(MethodView):
                 raise ValidationError('Incorrect file specification')
 
             supported = [choice.value for choice in FileBlob.type.choices]
-
             if file.mimetype in supported:
                 mime = Magic(mime=True)
                 content = copy(file.stream)
                 actual = mime.from_buffer(content.read())
+
                 if actual in supported:
-                    kwargs = {'type': actual, 'name': secure_filename(file.filename)}
-                    return jsonify(FileUpload(blob=FileBlob(**kwargs).save()).save().to_json())
+                    kwargs = {
+                        'type': actual,
+                        'size': content.tell(),
+                        'name': secure_filename(file.filename),
+                    }
+                    blob = FileBlob(**kwargs)
+                    blob.uri.put(content, content_type=actual)
+                    blob.save()
+
+                    return jsonify(FileUpload(blob=blob).save().to_json())
 
             return jsonify({'error': 'File type not supported'}, 415)
         except (FieldDoesNotExist, ValidationError):
