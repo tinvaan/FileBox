@@ -6,10 +6,7 @@ import mongomock as MockDB
 from mongomock.gridfs import enable_gridfs_integration
 
 from filebox.views import app
-from filebox.urls import Routes
 
-
-Routes.setup()
 
 enable_gridfs_integration()
 db.connect(
@@ -17,6 +14,9 @@ db.connect(
     host=app.config.get('MONGODB_HOST'),
     mongo_client_class=MockDB.MongoClient
 )
+
+from filebox.urls import Routes
+Routes.setup()
 
 app.run(
     debug=True,
