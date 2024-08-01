@@ -22,7 +22,9 @@ class Uploads(MethodView):
         show_all = False if str(request.args.get('all', 'false')).lower() == 'false' else True
         show_hidden = False if str(request.args.get('hidden', 'false')).lower() == 'false' else True
         kwargs = {} if show_all or show_hidden else {'hidden': show_hidden}
-        return jsonify([doc.to_json() for doc in FileUpload.objects.filter(**kwargs)])
+        return jsonify([
+            json.loads(doc.to_json()) for doc in FileUpload.objects.filter(**kwargs)
+        ])
 
     def post(self):
         try:
