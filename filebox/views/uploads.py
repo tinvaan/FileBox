@@ -33,17 +33,17 @@ class Uploads(MethodView):
             supported = [choice.value for choice in FileBlob.type.choices]
             if file.mimetype in supported:
                 mime = Magic(mime=True)
-                content = copy(file.stream)
-                actual = mime.from_buffer(content.read())
+                contents = copy(file.stream.read())
+                mimetype = mime.from_buffer(contents)
 
-                if actual in supported:
+                if mimetype in supported:
                     kwargs = {
-                        'type': actual,
-                        'size': content.tell(),
+                        'type': mimetype,
+                        'size': len(contents),
                         'name': secure_filename(file.filename),
                     }
                     blob = FileBlob(**kwargs)
-                    blob.uri.put(content, content_type=actual)
+                    blob.uri.put(contents, content_type=mimetype)
                     blob.save()
 
                     return jsonify(FileUpload(blob=blob).save().to_json())
