@@ -111,9 +111,10 @@ class TestFileUpload(unittest.TestCase):
         blob = self.blob('test.png', save=True)
         upload = FileUpload(blob=blob.id).save()
         before = deepcopy(upload)
-        upload.save()
 
-        self.assertNotEqual(before.state, upload.state)
+        upload.hidden = True
+        upload.save()
+        self.assertNotEqual(before.hidden, upload.hidden)
 
     def test_delete_file_upload(self):
         blob = self.blob('test.jpg', save=True)
