@@ -25,6 +25,9 @@ class Uploads(MethodView):
     def post(self):
         try:
             file = request.files.get('file')
+            if not file:
+                raise ValidationError('Incorrect file specification')
+
             supported = [choice.value for choice in FileBlob.type.choices]
 
             if file.mimetype in supported:
@@ -32,7 +35,7 @@ class Uploads(MethodView):
                 content = copy(file.stream)
                 actual = mime.from_buffer(content.read())
                 if actual in supported:
-                    kwargs = {'type': file.mimetype, 'name': secure_filename(file.filename)}
+                    kwargs = {'type': actual, 'name': secure_filename(file.filename)}
                     return jsonify(FileUpload(blob=FileBlob(**kwargs).save()).save().to_json())
 
             return jsonify({'error': 'File type not supported'}, 415)
